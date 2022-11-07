@@ -18,6 +18,8 @@
 #include "Circle.h"
 #include "MEllipse.h"
 #include <vector>
+#include "SeedFill.h"
+#include <queue>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -42,6 +44,8 @@ BEGIN_MESSAGE_MAP(CDemo1View, CView)
 	ON_COMMAND(ID_ALGORITHM_ELLIPSE, &CDemo1View::OnAlgorithmEllipse)
 	ON_COMMAND(ID_XSCAN_32777, &CDemo1View::OnXscan32777)
 	ON_COMMAND(ID_XSCAN_32778, &CDemo1View::OnXscan32778)
+	ON_COMMAND(ID_32780, &CDemo1View::On32780)
+	ON_COMMAND(ID_32781, &CDemo1View::On32781)
 END_MESSAGE_MAP()
 
 // CDemo1View 构造/析构
@@ -594,6 +598,7 @@ void CDemo1View::OnAlgorithmEllipse()
 	MidBresenhamEllipse(dc, a, b, color, p1);
 }
 
+
 /*
 * x-scan 
 */
@@ -610,13 +615,10 @@ public:
 Edge* ET[windowHeight];
 //活动边表
 Edge* AET;
-
 //Demo4 箭头
 std::vector<CPoint> vertices_jt = { CPoint(395/2, 887/2), CPoint(479/2, 998/2), CPoint(1199/2, 433/2), CPoint(1101/2, 867/2), CPoint(1294/2, 715/2), CPoint(1417/2, 171/2), CPoint(857/2, 163/2), CPoint(668/2, 314/2), CPoint(1111/2, 321/2) };
-
 //Demo5 闪电
 std::vector<CPoint> vertices_sd = { CPoint(117.4852*2,81.25429 * 2), CPoint(92.85692 * 2,104.5632 * 2), CPoint(117.04541 * 2,160.41662 * 2), CPoint(158.38573 * 2,134.46897 * 2), CPoint(164.5428 * 2,176.24908 * 2), CPoint(190.05067 * 2,165.25432 * 2), CPoint(207.2025 * 2,205.71506 * 2), CPoint(205.44334 * 2,145.02394 * 2), CPoint(182.13443 * 2,153.81976 * 2), CPoint(174.2182 * 2,95.76738 * 2), CPoint(134.19725 * 2,123.4742 * 2) };
-
 void polygonScan(CClientDC& dc, COLORREF color, std::vector <CPoint> vertices) {
 
 	//计算最高点的y坐标
@@ -738,11 +740,81 @@ void CDemo1View::OnXscan32777()
 	COLORREF color(RGB(255, 0, 150));
 	polygonScan(dc, color, vertices_jt);
 }
-
 //x-scan 闪电
 void CDemo1View::OnXscan32778()
 {
 	CClientDC dc(this);
 	COLORREF color(RGB(255, 0, 150));
 	polygonScan(dc, color, vertices_sd);
+}
+
+
+/*
+* 四邻域-边界表示种子填充算法
+*/
+void seed_filling4(CClientDC& dc,int x, int y, COLORREF fill_color, COLORREF edge_color) {
+	std::queue<std::pair<int, int>>qpt;
+	qpt.push(std::pair<int, int>(x, y));
+	while (!qpt.empty()) {
+		std::pair<int, int> pnow;
+		pnow = qpt.front();
+		qpt.pop();
+		COLORREF color = dc.GetPixel(pnow.first, pnow.second);
+		if ((color != edge_color) && (color != fill_color)) {
+			dc.SetPixel(pnow.first, pnow.second, fill_color);
+			qpt.push(std::pair<int, int>(pnow.first - 1,pnow.second));
+			qpt.push(std::pair<int, int>(pnow.first, pnow.second + 1));
+			qpt.push(std::pair<int, int>(pnow.first + 1, pnow.second));
+			qpt.push(std::pair<int, int>(pnow.first, pnow.second-1));
+		}
+
+	}
+}
+
+/*
+* 八邻域-边界表示种子填充算法
+*/
+void seed_filling8(CClientDC& dc, int x, int y, COLORREF fill_color, COLORREF edge_color) {
+	std::queue<std::pair<int, int>>qpt;
+	qpt.push(std::pair<int, int>(x, y));
+	while (!qpt.empty()) {
+		std::pair<int, int> pnow;
+		pnow = qpt.front();
+		qpt.pop();
+		COLORREF color = dc.GetPixel(pnow.first, pnow.second);
+		if ((color != edge_color) && (color != fill_color)) {
+			dc.SetPixel(pnow.first, pnow.second, fill_color);
+			qpt.push(std::pair<int, int>(pnow.first - 1, pnow.second));//left
+			qpt.push(std::pair<int, int>(pnow.first, pnow.second + 1));//top
+			qpt.push(std::pair<int, int>(pnow.first + 1, pnow.second));//right
+			qpt.push(std::pair<int, int>(pnow.first, pnow.second - 1));//bottom
+			qpt.push(std::pair<int, int>(pnow.first - 1, pnow.second + 1));//left+top
+			qpt.push(std::pair<int, int>(pnow.first + 1, pnow.second + 1));//right+top
+			qpt.push(std::pair<int, int>(pnow.first + 1, pnow.second - 1));//right+bottom
+			qpt.push(std::pair<int, int>(pnow.first - 1, pnow.second - 1));//bottom=left
+		}
+
+	}
+}
+void CDemo1View::On32780()
+{
+	SeedFill sf;
+	sf.DoModal();
+	CClientDC dc(this);
+	int a = sf.a;
+	CPoint center(sf.x, sf.y);
+	COLORREF edge_color(RGB(sf.edge_R, sf.edge_G, sf.edge_B));
+	COLORREF fill_color(RGB(sf.fill_R, sf.fill_G, sf.fill_B));
+	MidBresenhamCircle(dc,edge_color,a,center);
+	seed_filling4(dc,sf.x, sf.y, fill_color, edge_color);
+}
+
+
+void CDemo1View::On32781()
+{
+	// TODO: 在此添加命令处理程序代码
+	CClientDC dc(this);
+	CPen pen(PS_SOLID,10, RGB(255,0,0));
+	dc.Rectangle(100, 100, 200, 200);
+	seed_filling8(dc, 150, 150, RGB(0,255,0), RGB(255, 0, 0));
 }

@@ -51,6 +51,8 @@ public:
 	afx_msg void OnAlgorithmEllipse();
 	afx_msg void OnXscan32777();
 	afx_msg void OnXscan32778();
+	afx_msg void On32780();
+	afx_msg void On32781();
 };
 
 #ifndef _DEBUG  // Demo1View.cpp 中的调试版本
