@@ -75,6 +75,15 @@
     <ClInclude Include="SeedFill.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="transform.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BL.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Revolve.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Demo1.cpp">
@@ -126,6 +135,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SeedFill.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="transform.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BL.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Revolve.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

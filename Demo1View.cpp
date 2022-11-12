@@ -20,6 +20,10 @@
 #include <vector>
 #include "SeedFill.h"
 #include <queue>
+#include "transform.h"
+#include "BL.h"
+#include "Revolve.h"
+#include <math.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -46,6 +50,11 @@ BEGIN_MESSAGE_MAP(CDemo1View, CView)
 	ON_COMMAND(ID_XSCAN_32778, &CDemo1View::OnXscan32778)
 	ON_COMMAND(ID_32780, &CDemo1View::On32780)
 	ON_COMMAND(ID_32781, &CDemo1View::On32781)
+	ON_COMMAND(ID_32783, &CDemo1View::On32783)
+	ON_COMMAND(ID_32784, &CDemo1View::On32784)
+	ON_COMMAND(ID_32785, &CDemo1View::On32785)
+	ON_COMMAND(ID_32786, &CDemo1View::On32786)
+	ON_COMMAND(ID_32787, &CDemo1View::On32787)
 END_MESSAGE_MAP()
 
 // CDemo1View 构造/析构
@@ -774,26 +783,26 @@ void seed_filling4(CClientDC& dc,int x, int y, COLORREF fill_color, COLORREF edg
 /*
 * 八邻域-边界表示种子填充算法
 */
-void seed_filling8(CClientDC& dc, int x, int y, COLORREF fill_color, COLORREF edge_color) {
-	std::queue<std::pair<int, int>>qpt;
-	qpt.push(std::pair<int, int>(x, y));
-	while (!qpt.empty()) {
-		std::pair<int, int> pnow;
-		pnow = qpt.front();
-		qpt.pop();
-		COLORREF color = dc.GetPixel(pnow.first, pnow.second);
-		if ((color != edge_color) && (color != fill_color)) {
-			dc.SetPixel(pnow.first, pnow.second, fill_color);
-			qpt.push(std::pair<int, int>(pnow.first - 1, pnow.second));//left
-			qpt.push(std::pair<int, int>(pnow.first, pnow.second + 1));//top
-			qpt.push(std::pair<int, int>(pnow.first + 1, pnow.second));//right
-			qpt.push(std::pair<int, int>(pnow.first, pnow.second - 1));//bottom
-			qpt.push(std::pair<int, int>(pnow.first - 1, pnow.second + 1));//left+top
-			qpt.push(std::pair<int, int>(pnow.first + 1, pnow.second + 1));//right+top
-			qpt.push(std::pair<int, int>(pnow.first + 1, pnow.second - 1));//right+bottom
-			qpt.push(std::pair<int, int>(pnow.first - 1, pnow.second - 1));//bottom=left
+void seed_filling8(CDC* pDC, int x, int y) {
+	int i;
+	int xx[] = { 0,1,1,1,0,-1,-1,-1 };
+	int yy[] = { -1,-1,0,1,1,1,0,-1 };
+	std::queue<CPoint> q;
+	q.push(CPoint(x, y));
+	while (!q.empty()) {
+		CPoint tHead = q.front();
+		q.pop();
+		for (i = 0; i < 8; i++) {
+			CPoint tp = CPoint(tHead.x + xx[i], tHead.y + yy[i]);
+			COLORREF c = pDC->GetPixel(tp);
+			int r = GetRValue(c);
+			int g = GetGValue(c);
+			int b = GetBValue(c);
+			if (!(r == 0 && g == 0 && b == 0) && !(r == 0 && g == 255 && b == 0)) {
+				pDC->SetPixelV(tp, RGB(0, 255, 0));
+				q.push(tp);
+			}
 		}
-
 	}
 }
 void CDemo1View::On32780()
@@ -812,9 +821,318 @@ void CDemo1View::On32780()
 
 void CDemo1View::On32781()
 {
+
+	CDC* pDC = GetDC();
+	CDemo1Doc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+
+	pDC->MoveTo(100, 100);
+	pDC->LineTo(100, 200);
+	pDC->LineTo(200, 200);
+	pDC->LineTo(200, 100);
+	pDC->LineTo(100, 100);
+
+	seed_filling8(pDC, 150, 150);
+}
+
+
+//平移变化
+void CDemo1View::On32783()
+{
+
+	
+	CDC* pDC = GetDC();
+	pDC->MoveTo((int)(50 + 0.5), (int)(50 + 0.5));
+	pDC->LineTo((int)(200 + 0.5), (int)(50 + 0.5));
+	pDC->LineTo((int)(200 + 0.5), (int)(100 + 0.5));
+	pDC->LineTo((int)(50 + 0.5), (int)(100 + 0.5));
+	pDC->LineTo((int)(50 + 0.5), (int)(50+ 0.5));
+
+	transform ts;
+	ts.DoModal();
+	int right = ts.right;
+	int down = ts.down;
+	pDC->MoveTo((int)(50 + 0.5+right), (int)(50 + 0.5+down));
+	pDC->LineTo((int)(200 + 0.5 + right), (int)(50 + 0.5 + down));
+	pDC->LineTo((int)(200 + 0.5 + right), (int)(100 + 0.5 + down));
+	pDC->LineTo((int)(50 + 0.5 + right), (int)(100 + 0.5 + down));
+	pDC->LineTo((int)(50 + 0.5 + right), (int)(50 + 0.5 + down));
+	
+}
+
+//比例变化
+void CDemo1View::On32784()
+{
 	// TODO: 在此添加命令处理程序代码
-	CClientDC dc(this);
-	CPen pen(PS_SOLID,10, RGB(255,0,0));
-	dc.Rectangle(100, 100, 200, 200);
-	seed_filling8(dc, 150, 150, RGB(0,255,0), RGB(255, 0, 0));
+	CDC* pDC = GetDC();
+	int res_x = (int)(50 + 0.5);
+	int res_y = (int)(50 + 0.5);
+
+	pDC->MoveTo(res_x, res_y);
+	pDC->LineTo(res_x +150, res_y);
+	pDC->LineTo(res_x+150, res_y+50);
+	pDC->LineTo(res_x, res_x+50);
+	pDC->LineTo(res_x, res_y);
+
+	BL bl;
+	bl.DoModal();
+
+	int x = bl.x;
+	int y = bl.y;
+
+	res_x = 200;
+	res_y = 200;
+
+	pDC->MoveTo(x,y);
+	pDC->MoveTo(res_x, res_y);
+	pDC->LineTo(res_x + 150/x, res_y);
+	pDC->LineTo(res_x + 150/x, res_y + 50/y);
+	pDC->LineTo(res_x, res_x + 50/y);
+	pDC->LineTo(res_x, res_y);
+}
+
+//旋转变换
+void CDemo1View::On32785()
+{
+	Revolve rl;
+	rl.DoModal();
+	int angle = rl.theta;
+	CDC* pDC = GetDC();
+
+	this->points[0][0] = AA;
+	this->points[0][1] = -BB + AA;
+	this->points[0][2] = 1;
+	this->points[1][0] = AA;
+	this->points[1][1] = -BB - AA;
+	this->points[1][2] = 1;
+	this->points[2][0] = -AA;
+	this->points[2][1] = -BB - AA;
+	this->points[2][2] = 1;
+	this->points[3][0] = -AA;
+	this->points[3][1] = -BB + AA;
+	this->points[3][2] = 1;
+
+	// TODO: add draw code for native data here
+	CRect rect;
+	//获得客户区矩形的大小
+	GetClientRect(&rect);
+	//自定义坐标系
+	pDC->SetMapMode(MM_ANISOTROPIC);
+	//设置窗口比例
+	pDC->SetWindowExt(rect.Width(), rect.Height());
+	//设置视区比例，且x轴水平向右，y轴垂直向上
+	pDC->SetViewportExt(rect.Width(), -rect.Height());
+	//设置客户区中心为坐标系原点
+	pDC->SetViewportOrg(rect.Width() / 2 - 300, rect.Height() / 2-300);
+	//矩形与客户区重合
+	rect.OffsetRect(-rect.Width() / 2, -rect.Height() / 2);
+
+	// 画矩形
+	pDC->MoveTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+	pDC->LineTo((int)(this->points[1][0] + 0.5), (int)(this->points[1][1] + 0.5));
+	pDC->LineTo((int)(this->points[2][0] + 0.5), (int)(this->points[2][1] + 0.5));
+	pDC->LineTo((int)(this->points[3][0] + 0.5), (int)(this->points[3][1] + 0.5));
+	pDC->LineTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+
+
+
+	int i, j, k;
+	double p[4][3] = { {0,0,0},
+						{0,0,0},
+						{0,0,0}
+	};
+
+
+	double t[3][3] = { {cos(angle),	sin(angle),		0},
+						{-sin(angle),	cos(angle),		0},
+						{-BB * sin(angle),BB * (cos(angle) - 1),1}
+	};
+
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 3; j++) {
+			for (k = 0; k < 3; k++) {
+				p[i][j] += (this->points[i][k] * t[k][j]);
+			}
+		}
+	}
+
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 2; j++) {
+			this->points[i][j] = p[i][j];
+		}
+	}
+
+		pDC->MoveTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+	pDC->LineTo((int)(this->points[1][0] + 0.5), (int)(this->points[1][1] + 0.5));
+	pDC->LineTo((int)(this->points[2][0] + 0.5), (int)(this->points[2][1] + 0.5));
+	pDC->LineTo((int)(this->points[3][0] + 0.5), (int)(this->points[3][1] + 0.5));
+	pDC->LineTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+
+}
+
+//对称变换
+void CDemo1View::On32786()
+{
+	// TODO: 在此添加命令处理程序代码
+	this->points[0][0] = AA;
+	this->points[0][1] = -BB + AA;
+	this->points[0][2] = 1;
+	this->points[1][0] = AA;
+	this->points[1][1] = -BB - AA;
+	this->points[1][2] = 1;
+	this->points[2][0] = -AA;
+	this->points[2][1] = -BB - AA;
+	this->points[2][2] = 1;
+	this->points[3][0] = -AA;
+	this->points[3][1] = -BB + AA;
+	this->points[3][2] = 1;
+	
+	CDC* pDC = GetDC();
+
+
+	// TODO: add draw code for native data here
+	CRect rect;
+	//获得客户区矩形的大小
+	GetClientRect(&rect);
+	//自定义坐标系
+	pDC->SetMapMode(MM_ANISOTROPIC);
+	//设置窗口比例
+	pDC->SetWindowExt(rect.Width(), rect.Height());
+	//设置视区比例，且x轴水平向右，y轴垂直向上
+	pDC->SetViewportExt(rect.Width(), -rect.Height());
+	//设置客户区中心为坐标系原点
+	pDC->SetViewportOrg(rect.Width() / 2, rect.Height() / 2);
+	//矩形与客户区重合
+	rect.OffsetRect(-rect.Width() / 2, -rect.Height() / 2);
+
+	// 坐标轴
+	pDC->MoveTo(-BB, 0);
+	pDC->LineTo(BB, 0);
+	pDC->MoveTo(0, 0);
+	pDC->LineTo(0, -BB);
+	// 画矩形
+	pDC->MoveTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+	pDC->LineTo((int)(this->points[1][0] + 0.5), (int)(this->points[1][1] + 0.5));
+	pDC->LineTo((int)(this->points[2][0] + 0.5), (int)(this->points[2][1] + 0.5));
+	pDC->LineTo((int)(this->points[3][0] + 0.5), (int)(this->points[3][1] + 0.5));
+	pDC->LineTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+
+
+
+
+
+
+	int i, j, k;
+	double p[4][3] = { {0,0,0},
+						{0,0,0},
+						{0,0,0}
+	};
+
+
+	double t[3][3] = { {1,	0,		0},
+						{0,	-1,		0},
+						{0,0,1}
+	};
+
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 3; j++) {
+			for (k = 0; k < 3; k++) {
+				p[i][j] += (this->points[i][k] * t[k][j]);
+			}
+		}
+	}
+
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 2; j++) {
+			this->points[i][j] = p[i][j];
+		}
+	}
+
+	pDC->MoveTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+	pDC->LineTo((int)(this->points[1][0] + 0.5), (int)(this->points[1][1] + 0.5));
+	pDC->LineTo((int)(this->points[2][0] + 0.5), (int)(this->points[2][1] + 0.5));
+	pDC->LineTo((int)(this->points[3][0] + 0.5), (int)(this->points[3][1] + 0.5));
+	pDC->LineTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+}
+
+//错切变换
+void CDemo1View::On32787()
+{
+	// TODO: 在此添加命令处理程序代码
+	CDC* pDC = GetDC();
+
+	this->points[0][0] = AA;
+	this->points[0][1] = -BB + AA;
+	this->points[0][2] = 1;
+	this->points[1][0] = AA;
+	this->points[1][1] = -BB - AA;
+	this->points[1][2] = 1;
+	this->points[2][0] = -AA;
+	this->points[2][1] = -BB - AA;
+	this->points[2][2] = 1;
+	this->points[3][0] = -AA;
+	this->points[3][1] = -BB + AA;
+	this->points[3][2] = 1;
+
+	// TODO: add draw code for native data here
+	CRect rect;
+	//获得客户区矩形的大小
+	GetClientRect(&rect);
+	//自定义坐标系
+	pDC->SetMapMode(MM_ANISOTROPIC);
+	//设置窗口比例
+	pDC->SetWindowExt(rect.Width(), rect.Height());
+	//设置视区比例，且x轴水平向右，y轴垂直向上
+	pDC->SetViewportExt(rect.Width(), -rect.Height());
+	//设置客户区中心为坐标系原点
+	pDC->SetViewportOrg(rect.Width() / 2 - 300, rect.Height() / 2 - 300);
+	//矩形与客户区重合
+	rect.OffsetRect(-rect.Width() / 2, -rect.Height() / 2);
+
+	// 画矩形
+	pDC->MoveTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+	pDC->LineTo((int)(this->points[1][0] + 0.5), (int)(this->points[1][1] + 0.5));
+	pDC->LineTo((int)(this->points[2][0] + 0.5), (int)(this->points[2][1] + 0.5));
+	pDC->LineTo((int)(this->points[3][0] + 0.5), (int)(this->points[3][1] + 0.5));
+	pDC->LineTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+
+
+
+	int i, j, k;
+	double p[4][3] = { {0,0,0},
+						{0,0,0},
+						{0,0,0}
+	};
+
+
+	double t[3][3] = { {1,	0.5,		0},
+						{0.3,	1,		0},
+						{0,0,1}
+	};
+
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 3; j++) {
+			for (k = 0; k < 3; k++) {
+				p[i][j] += (this->points[i][k] * t[k][j]);
+			}
+		}
+	}
+
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 2; j++) {
+			this->points[i][j] = p[i][j];
+		}
+	}
+
+	pDC->MoveTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
+	pDC->LineTo((int)(this->points[1][0] + 0.5), (int)(this->points[1][1] + 0.5));
+	pDC->LineTo((int)(this->points[2][0] + 0.5), (int)(this->points[2][1] + 0.5));
+	pDC->LineTo((int)(this->points[3][0] + 0.5), (int)(this->points[3][1] + 0.5));
+	pDC->LineTo((int)(this->points[0][0] + 0.5), (int)(this->points[0][1] + 0.5));
 }

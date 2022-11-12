@@ -183,6 +183,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BL.h" />
     <ClInclude Include="Brasenham.h" />
     <ClInclude Include="BresenhamPlus.h" />
     <ClInclude Include="ChildFrm.h" />
@@ -200,11 +201,14 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="PropertiesWnd.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="Revolve.h" />
     <ClInclude Include="SeedFill.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="transform.h" />
     <ClInclude Include="ViewTree.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BL.cpp" />
     <ClCompile Include="Brasenham.cpp" />
     <ClCompile Include="BresenhamPlus.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
@@ -225,7 +229,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PropertiesWnd.cpp" />
+    <ClCompile Include="Revolve.cpp" />
     <ClCompile Include="SeedFill.cpp" />
+    <ClCompile Include="transform.cpp" />
     <ClCompile Include="ViewTree.cpp" />
   </ItemGroup>
   <ItemGroup>

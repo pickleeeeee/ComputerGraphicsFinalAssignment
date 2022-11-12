@@ -4,6 +4,9 @@
 
 #pragma once
 
+#define AA 40
+#define BB 200
+
 
 class CDemo1View : public CView
 {
@@ -14,6 +17,7 @@ protected: // 仅从序列化创建
 // 特性
 public:
 	CDemo1Doc* GetDocument() const;
+	double points[4][3];
 
 // 操作
 public:
@@ -53,6 +57,11 @@ public:
 	afx_msg void OnXscan32778();
 	afx_msg void On32780();
 	afx_msg void On32781();
+	afx_msg void On32783();
+	afx_msg void On32784();
+	afx_msg void On32785();
+	afx_msg void On32786();
+	afx_msg void On32787();
 };
 
 #ifndef _DEBUG  // Demo1View.cpp 中的调试版本
